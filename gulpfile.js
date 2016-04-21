@@ -34,24 +34,23 @@ gulp.task('server', function() {
         server: '',
         port: 9000
     });
-    gulp.watch('levels/pages/**/*.{html,hbs,handlebars}', ['html']);
+    /*gulp.watch('levels/pages/!**!/!*.{html,hbs,handlebars}', ['html']);
     gulp.watch(params.levels.map(function(level) {
-        var hbsGlob = level + '/**/*.hbs';
+        var hbsGlob = level + '/!**!/!*.hbs';
         return hbsGlob;
     }), ['html']);
     gulp.watch(params.levels.map(function(level) {
-        var cssGlob = level + '/**/*.scss';
+        var cssGlob = level + '/!**!/!*.scss';
         return cssGlob;
     }), ['css']);
     gulp.watch(params.levels.map(function(level) {
-        var jsGlob = level + '/**/*.js';
+        var jsGlob = level + '/!**!/!*.js';
         return jsGlob;
-    }), ['js']);
+    }), ['js']);*/
 
 });
 gulp.task('watch', function() {
     gulp.watch(params.src + '*.js', ['js']);
-    gulp.watch(params.src + 'databank.json', ['databank']);
 });
 
 gulp.task('html', function() {
@@ -123,6 +122,7 @@ gulp.task('js', function() {
             presets: ['es2015']
         }))
         .pipe(gulp.dest(params.out))
+        .pipe(reload({ stream: true }))
 });
 gulp.task('databank', function() {
     gulp.src(params.src + 'databank.json')
@@ -138,6 +138,6 @@ gulp.task('clean', function () {
     del([params.out]);
 });
 
-gulp.task('default', ['js', 'databank', 'watch']);
+gulp.task('default', ['js', 'server', 'watch']);
 gulp.task('build', ['css', 'js']);
 gulp.task('production', ['js-uglify', 'css-minify', 'server']);

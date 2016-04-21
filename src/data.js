@@ -80,28 +80,3 @@ var data = {
         ]
     }
 };
-
-
-if(typeof(Storage) !== "undefined") {
-    saveTable(data.students);
-    console.log(Object.keys(data.students));
-    console.log(data.students.constructor.name);
-} else {
-    alert('LocalStorage не поддерживается Вашим браузером!');
-}
-
-
-function saveTable(table){
-    localStorage.setItem(table.name, JSON.stringify(table));
-}
-
-function deleteAllTables(){
-    if (confirm("Удаление ВСЕХ таблиц. Вы уверены?")) {
-        data.forEach(function(item){
-            deleteTable(item.name);
-        });
-    }
-}
-function deleteTable(table){
-    localStorage(table.name).clear();
-}
