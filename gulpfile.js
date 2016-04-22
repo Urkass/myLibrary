@@ -115,7 +115,7 @@ gulp.task('css', function() {
 });
 
 gulp.task('js', function() {
-    return gulp.src(params.src + 'index.js')
+    return gulp.src(params.src + '*.js')
         //.pipe(eslint())
         //.pipe(eslint.format())
         .pipe(babel({

@@ -126,7 +126,7 @@ function addStudent(name, surname, team) {
 
 function changeStudentTeam(studentId, teamId) {
     teamId = parseInt(teamId);
-    if (teamId === undefined) return undefined;
+    if (teamId === undefined || isNaN(teamId)) return undefined;
     try {
         //есть ли id этой команды (без контекста (можно для всех))
         var teams = retrieveTable('teams');
