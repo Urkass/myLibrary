@@ -125,6 +125,7 @@ function addStudent(name, surname, team) {
 }
 
 function changeStudentTeam(studentId, teamId) {
+    teamId = parseInt(teamId);
     if (teamId === undefined) return undefined;
     try {
         //есть ли id этой команды (без контекста (можно для всех))
@@ -167,15 +168,10 @@ function changeStudentTeam(studentId, teamId) {
     }
 }
 
-function addTeam(name) {
+function addTeam(name, students) {
     var title = 'teams';
     var teams = retrieveTable(title);
     var id = retrieveLastId(teams) + 1;
-
-    for (var _len = arguments.length, students = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        students[_key - 1] = arguments[_key];
-    }
-
     teams.data.push({
         'id': id,
         'name': name,
@@ -183,14 +179,14 @@ function addTeam(name) {
     });
     saveTable(teams);
 }
+function showTable(table) {
+    var title = table;
+    return retrieveTable(title);
+}
 
-function changeTeamStudents(teamId) {
+function changeTeamStudents(teamId, studentIds) {
+    if (studentIds === undefined) return undefined;
     var context = this;
-
-    for (var _len2 = arguments.length, studentIds = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-        studentIds[_key2 - 1] = arguments[_key2];
-    }
-
     var array = studentIds.map(function (item) {
         var id = insertStudentToTeam.call(context, teamId, item);
         if (id) return id;
@@ -199,36 +195,43 @@ function changeTeamStudents(teamId) {
 }
 
 function insertStudentToTeam(teamId, studentId) {
-    var students = retrieveTable('students');
+    if (studentId === undefined) return undefined;
     try {
+        //есть ли id этой команды (без контекста (можно для всех))
+        var students = retrieveTable('students');
+        if (retrieveId(students, studentId) === undefined) {
+            throw new Error('Id = ' + studentId + '. Такого id студента нету!');
+        }
+        if (students.data[retrieveId(students, studentId)].teamId !== undefined) {
+            throw new Error("У этого студента уже есть команда");
+        }
+
         var teams = retrieveTable('teams');
-        if (!(retrieveId(teams, teamId) === undefined)) {
-            var retrievedId = retrieveId(students, studentId);
-            if (!students.data[retrievedId].teamId) {
-                students.data[retrievedId].teamId = teamId;
-                if (this) {
-                    console.log('Добавили в новосозданную комманду с id ' + teamId + ' студента с id ' + studentId);
+        if (this) {
+            //проверка на контекст
+            students.data[retrieveId(students, studentId)].teamId = teamId;
+            console.log('Добавили студенту с id ' + studentId + ' команду с id ' + teamId);
+            saveTable(students);
+            return studentId;
+        } else {
+            //проверка нету ли еще студента (только для контекста 'students')
+            if (!(retrieveId(teams, teamId) === undefined)) {
+                //проверка есть ли уже ЭТОТ студент в этой команде (без контекста (можно для всех))
+                if (!teams.data[retrieveId(teams, teamId)].studentsIds.includes(studentId)) {
+                    students.data[retrieveId(students, studentId)].teamId = teamId;
+                    teams.data[retrieveId(teams, teamId)].studentsIds.push(studentId);
+                    console.log('Добавили в команду с id ' + teamId + ' студента с id ' + studentId);
                     saveTable(students);
-                    return studentId;
+                    saveTable(teams);
                 } else {
-                    try {
-                        //let teams = retrieveTable('teams');
-                        teams.data[retrieveId(teams, teamId)].studentsIds.push(studentId);
-                        console.log('Добавили в старую комманду с id ' + teamId + ' студента с id ' + studentId);
-                        saveTable(teams);
-                    } catch (e) {
-                        console.log('Id = ' + teamId + '. Такой команды нету!');
-                    }
+                    throw new Error("Студент уже добавлен в эту команду");
                 }
             } else {
-                console.log('У студента с id ' + teamId + ' уже есть команда! Он не добавлен.');
-                return null;
+                throw new Error('Id = ' + teamId + '. Такого id команды нету');
             }
-        } else {
-            console.log('Id = ' + teamId + '. Такой команды нету!');
         }
     } catch (e) {
-        console.log('Id = ' + studentId + '. Такого id студента нету');
+        console.log(e.message);
     }
 }
 function deleteStudentFromTeam(teamId, studentId) {}
@@ -248,6 +251,8 @@ function addTask(hostId, name, description, mark) {
         'ownerId': hostId
     });
 }
+function addTaskMark() {}
+function changeTaskOwner() {}
 
 function retrieveLastId(table) {
     return table.data[table.data.length - 1].id;

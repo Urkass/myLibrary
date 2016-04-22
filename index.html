@@ -1,11 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 </head>
 <body>
-
+<div class="container">
+    <div class="form-inline" id='formStudent'>
+        <div class="form-group">
+            <label class="sr-only" for="inputStudentName">Имя</label>
+            <input type="text" class="form-control" id="inputStudentName" placeholder="Имя">
+        </div>
+        <div class="form-group">
+            <label class="sr-only" for="inputStudentSurname">Фамилия</label>
+            <input type="text" class="form-control" id="inputStudentSurname" placeholder="Фамилия">
+        </div>
+        <select class="form-control" id="inputStudentTeam">
+        </select>
+        <button id='submitStudent' class="btn btn-default glyphicon glyphicon-plus"></button>
+    </div>
+</div>
 </body>
 <script src="dist/index.js"></script>
+<script src="src/app.js"></script>
 </html>

@@ -40,6 +40,7 @@
     "path": "0.12.7"
   },
   "dependencies": {
+    "bootstrap": "^3.3.6",
     "localforage": "^1.4.0"
   }
 }
