@@ -486,6 +486,55 @@ function addTaskMark(taskId, mark){
     }
 }
 
+/**
+ * Delete task.
+ * @param {number} taskId - task's id.
+ */
+function deleteTask(taskId) {
+    let title = 'tasks';
+    let tasks = retrieveTable(title);
+    if (!(retrieveId(tasks, taskId) === undefined)) {
+        if (tasks.data.length === 1) {
+            tasks.data = [];
+        }
+        else{
+            tasks.data.splice(retrieveId(tasks, taskId), 1);
+            deleteTaskFromTeam(taskId);
+            deleteTaskFromStudent(taskId);
+        }
+        saveTable(tasks);
+    } else {
+        console.log('Id = ' + taskId + '. Такого id задания нету');
+    }
+}
+/**
+ * Delete task from team.
+ * @param {number} taskId - task's id.
+ */
+function deleteTaskFromTeam(taskId) {
+    let teams = retrieveTable('teams');
+    let tasks = retrieveTable('tasks');
+    let teamId = tasks.data[retrieveId(tasks, taskId)].teamId;
+    if (teamId){
+        let i = teams.data[retrieveId(teams, teamId)].tasksIds.indexOf(taskId);
+        teams.data[retrieveId(teams, teamId)].tasksIds.splice(i, 1);
+        saveTable(teams);
+    }
+}
+/**
+ * Delete task from student.
+ * @param {number} taskId - task's id.
+ */
+function deleteTaskFromStudent(taskId) {
+    let students = retrieveTable('students');
+    let tasks = retrieveTable('tasks');
+    let studentId = tasks.data[retrieveId(tasks, taskId)].studentId;
+    if (studentId){
+        let i = students.data[retrieveId(students, studentId)].tasksIds.indexOf(taskId);
+        students.data[retrieveId(students, studentId)].tasksIds.splice(i, 1);
+        saveTable(students);
+    }
+}
 function changeTaskOwner(taskId, tableName, hostId){
     let context = this;
     let host = retrieveTable(tableName);
