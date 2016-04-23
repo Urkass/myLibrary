@@ -19,7 +19,7 @@ var databank = {
             'id': 2,
             'name': 'Джон',
             'surname': 'Малкович',
-            'teamId': 0,
+            //'teamId': 0,
             'tasksIds': undefined
         }]
     },
@@ -28,7 +28,7 @@ var databank = {
         'data': [{
             'id': 0,
             'name': 'Головастики',
-            'studentsIds': [0, 2],
+            'studentsIds': [2],
             'tasksIds': undefined
         }, {
             'id': 1,
@@ -68,12 +68,36 @@ var databank = {
             'ownerTableName': 'teams',
             'ownerId': 1
         }]
+    },
+    'mentors': {
+        'name': 'mentors',
+        'data': [{
+            'id': 0,
+            'name': 'Брюс',
+            'surname': 'Ли'
+        }, {
+            'id': 1,
+            'name': 'Геннадий',
+            'surname': 'Хазанов'
+        }, {
+            'id': 2,
+            'name': 'Том',
+            'surname': 'Делонг'
+        }, {
+            'id': 3,
+            'name': 'Элвис',
+            'surname': 'Пресли'
+        }, {
+            'id': 4,
+            'name': 'Бьерн',
+            'surname': 'Страуструп'
+        }]
     }
 };
 
 if (typeof Storage !== "undefined") {
-    for (var table in databank) {
-        saveTable(databank[table]);
+    for (var _table in databank) {
+        saveTable(databank[_table]);
     }
 } else {
     alert('LocalStorage не поддерживается Вашим браузером!');
@@ -103,9 +127,9 @@ function deleteTable(tableName) {
     showLocalstorageSpace();
 }
 
-function retrieveTable(tableName) {
+var retrieveTable = function retrieveTable(tableName) {
     return JSON.parse(localStorage.getItem(tableName));
-}
+};
 
 function showLocalstorageSpace() {
     console.log('Осталось места в LocalStorage ' + ((1024 * 1024 * 5 - encodeURIComponent(JSON.stringify(localStorage)).length) / 1024 / 1024).toPrecision(3) + ' MB');
@@ -168,7 +192,12 @@ function changeStudentTeam(studentId, teamId) {
     }
 }
 
-function addTeam(name, students) {
+function addTeam(name) {
+    for (var _len = arguments.length, students = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        students[_key - 1] = arguments[_key];
+    }
+
+    console.log(students);
     var title = 'teams';
     var teams = retrieveTable(title);
     var id = retrieveLastId(teams) + 1;
@@ -185,7 +214,7 @@ function showTable(table) {
 }
 
 function changeTeamStudents(teamId, studentIds) {
-    if (studentIds === undefined) return undefined;
+    if (studentIds.length === 0) return undefined;
     var context = this;
     var array = studentIds.map(function (item) {
         var id = insertStudentToTeam.call(context, teamId, item);
@@ -195,6 +224,7 @@ function changeTeamStudents(teamId, studentIds) {
 }
 
 function insertStudentToTeam(teamId, studentId) {
+    studentId = parseInt(studentId);
     if (studentId === undefined) return undefined;
     try {
         //есть ли id этой команды (без контекста (можно для всех))
@@ -240,23 +270,59 @@ var addStudentTask = addTask.bind('students');
 var addTeamTask = addTask.bind('teams');
 
 function addTask(hostId, name, description, mark) {
-    var host = retrieveTable(this);
+    var tableName = this;
+    var host = retrieveTable(tableName);
     var id = retrieveLastId(host) + 1;
     host.data.push({
         'id': id,
         'name': name,
         'description': description,
-        'mark': mark,
+        'mark': addTaskMark.call(tableName, hostId, id, mark),
         'ownerTableName': this,
         'ownerId': hostId
     });
 }
-function addTaskMark() {}
-function changeTaskOwner() {}
-
-function retrieveLastId(table) {
-    return table.data[table.data.length - 1].id;
+function addTaskMark(hostId, taskId, mark) {
+    table = this;
+    mark = parseInt(mark);
+    if (mark >= 0 && mark <= 5) {
+        if (this) {
+            return mark;
+        } else {
+            if (!(retrieveId(tasks, taskId) === undefined)) {
+                if (tasks.data[retrieveId(tasks, taskId)].mark !== undefined) {
+                    if (confirm('Задание с id=' + hostId + ' уже имеет оценку. Заменить?')) {
+                        tasks.data[retrieveId(tasks, taskId)].mark = mark;
+                    } else {
+                        console.log('Замена оценки отменена');
+                    }
+                }
+            } else {
+                console.log('Такого id=' + hostId + ' задания не существет');
+            }
+        }
+    } else {
+        console.log('Оценка не корректная');
+    }
 }
+function changeTaskOwner() {}
+function addMentor(name, surname) {
+    var title = 'mentors';
+    var mentors = retrieveTable(title);
+    var id = retrieveLastId(mentors) + 1;
+    mentors.data.push({
+        'id': id,
+        'name': name,
+        'surname': surname
+    });
+    saveTable(mentors);
+}
+var retrieveLastId = function retrieveLastId(table) {
+    return table.data[table.data.length - 1].id;
+};
+//function retrieveLastId(table){
+//    return table.data[table.data.length-1].id;
+//}
 
 function retrieveId(table, id) {
     var x = undefined;

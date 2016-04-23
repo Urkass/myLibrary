@@ -1,12 +1,33 @@
 var submitStudent = document.getElementById('submitStudent');
+var submitTeam = document.getElementById('submitTeam');
+var submitTask = document.getElementById('submitTask');
+var submitMentor = document.getElementById('submitMentor');
+
 submitStudent.onclick = function(){
-    addStudent(document.getElementById('inputStudentName').value, document.getElementById('inputStudentSurname').value, document.getElementById('inputStudentTeam').value)
-    //initTables();
+    addStudent(document.getElementById('inputStudentName').value, document.getElementById('inputStudentSurname').value, document.getElementById('inputStudentTeam').value);
+    initTables();
+};
+submitTeam.onclick = function(){
+    console.log(document.getElementById('inputTeamStudents').value);
+    addTeam(document.getElementById('inputTeamName').value, document.getElementById('inputTeamStudents').value);
+    initTables();
+};
+//submitTask.onclick = function(){
+//    addStudent(document.getElementById('inputStudentName').value, document.getElementById('inputStudentSurname').value, document.getElementById('inputStudentTeam').value)
+//    initTables();
+//};
+submitMentor.onclick = function(){
+    addMentor(document.getElementById('inputMentorName').value, document.getElementById('inputMentorSurname').value);
+    initTables();
 };
 function initSelects(){
     let teams = showTable('teams');
+    let students = showTable('students');
     teams.data.forEach(function(team){
         document.getElementById('inputStudentTeam').options[document.getElementById('inputStudentTeam').options.length] = new Option(team.name, team.id);
+    });
+    students.data.forEach(function(student){
+        document.getElementById('inputTeamStudents').options[document.getElementById('inputTeamStudents').options.length] = new Option(`${student.name} ${student.surname}`, student.id);
     });
 
 }
@@ -34,6 +55,14 @@ function initTables(){
     });
     htmlString += '</tbody>';
     document.getElementById('tableTasks').innerHTML = htmlString;
+
+    let mentors = showTable('mentors');
+    htmlString = '<thead><tr><th>${mentor.id}</th><th>${mentor.name}</th><th>${mentor.surname}</th></tr></thead><tbody>';
+    mentors.data.forEach(function(mentor){
+        htmlString += `<tr><td>${mentor.id}</td><td>${mentor.name}</td><td>${mentor.surname}</td></tr>`
+    });
+    htmlString += '</tbody>';
+    document.getElementById('tableMentors').innerHTML = htmlString;
     
 }
 initSelects();

@@ -78,5 +78,5 @@ var data = {
                 'owner-id': 1
             }
         ]
-    }
+    },
 };
