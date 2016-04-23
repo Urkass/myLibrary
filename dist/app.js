@@ -25,6 +25,8 @@ submitMentor.onclick = function () {
 function initSelects() {
     var teams = retrieveTable('teams');
     var students = retrieveTable('students');
+    document.getElementById('inputStudentTeam').options.length = 0;
+    document.getElementById('inputTeamStudents').options.length = 0;
     teams.data.forEach(function (team) {
         document.getElementById('inputStudentTeam').options[document.getElementById('inputStudentTeam').options.length] = new Option(team.name, team.id);
     });
@@ -50,9 +52,9 @@ function initTables() {
     document.getElementById('tableTeams').innerHTML = htmlString;
 
     var tasks = retrieveTable('tasks');
-    htmlString = '<thead><tr><th>${task.id}</th><th>${task.name}</th><th>${task.description}</th><th>${task.ownerTableName}</th><th>${task.ownerId}</th></tr></thead><tbody>';
+    htmlString = '<thead><tr><th>${task.id}</th><th>${task.name}</th><th>${task.description}</th><th>${task.mark}</th><th>${task.ownerTableName}</th><th>${task.ownerId}</th></tr></thead><tbody>';
     tasks.data.forEach(function (task) {
-        htmlString += '<tr><td>' + task.id + '</td><td>' + task.name + '</td><td>' + task.description + '</td><td>' + task.ownerTableName + '</td><td>' + task.ownerId + '</td><td><button id=\'\' class="btn btn-default glyphicon glyphicon-minus"></button></td></tr>';
+        htmlString += '<tr><td>' + task.id + '</td><td>' + task.name + '</td><td>' + task.description + '</td><td>' + task.mark + '</td><td>' + task.ownerTableName + '</td><td>' + task.ownerId + '</td><td><button id=\'\' class="btn btn-default glyphicon glyphicon-minus"></button></td></tr>';
     });
     htmlString += '</tbody>';
     document.getElementById('tableTasks').innerHTML = htmlString;
@@ -64,6 +66,6 @@ function initTables() {
     });
     htmlString += '</tbody>';
     document.getElementById('tableMentors').innerHTML = htmlString;
+    initSelects();
 }
-initSelects();
 initTables();
