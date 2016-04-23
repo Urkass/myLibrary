@@ -23,8 +23,8 @@ submitMentor.onclick = function () {
     initTables();
 };
 function initSelects() {
-    var teams = showTable('teams');
-    var students = showTable('students');
+    var teams = retrieveTable('teams');
+    var students = retrieveTable('students');
     teams.data.forEach(function (team) {
         document.getElementById('inputStudentTeam').options[document.getElementById('inputStudentTeam').options.length] = new Option(team.name, team.id);
     });
@@ -33,7 +33,7 @@ function initSelects() {
     });
 }
 function initTables() {
-    var students = showTable('students');
+    var students = retrieveTable('students');
     var htmlString = '<thead><tr><th>${student.id}</th><th>${student.name}</th><th>${student.surname}</th><th>${student.teamId}</th><th>${student.tasksIds}</th></tr></thead><tbody>';
     students.data.forEach(function (student) {
         htmlString += '<tr><td>' + student.id + '</td><td>' + student.name + '</td><td>' + student.surname + '</td><td>' + student.teamId + '</td><td>' + student.tasksIds + '</td></td>';
@@ -41,23 +41,23 @@ function initTables() {
     htmlString += '</tbody>';
     document.getElementById('tableStudents').innerHTML = htmlString;
 
-    var teams = showTable('teams');
-    htmlString = '<thead><tr><th>${team.id}</th><th>${team.name}</th><th>${team.studentsIds}</th></tr></thead><tbody>';
+    var teams = retrieveTable('teams');
+    htmlString = '<thead><tr><th>${team.id}</th><th>${team.name}</th><th>${team.studentsIds}</th><th>${team.tasksIds}</th></tr></thead><tbody>';
     teams.data.forEach(function (team) {
-        htmlString += '<tr><td>' + team.id + '</td><td>' + team.name + '</td><td>' + team.studentsIds + '</td></td>';
+        htmlString += '<tr><td>' + team.id + '</td><td>' + team.name + '</td><td>' + team.studentsIds + '</td><td>' + team.tasksIds + '</td></td>';
     });
     htmlString += '</tbody>';
     document.getElementById('tableTeams').innerHTML = htmlString;
 
-    var tasks = showTable('tasks');
+    var tasks = retrieveTable('tasks');
     htmlString = '<thead><tr><th>${task.id}</th><th>${task.name}</th><th>${task.description}</th><th>${task.ownerTableName}</th><th>${task.ownerId}</th></tr></thead><tbody>';
     tasks.data.forEach(function (task) {
-        htmlString += '<tr><td>' + task.id + '</td><td>' + task.name + '</td><td>' + task.description + '</td><td>' + task.ownerTableName + '</td><td>' + task.ownerId + '</td></tr>';
+        htmlString += '<tr><td>' + task.id + '</td><td>' + task.name + '</td><td>' + task.description + '</td><td>' + task.ownerTableName + '</td><td>' + task.ownerId + '</td><td><button id=\'\' class="btn btn-default glyphicon glyphicon-minus"></button></td></tr>';
     });
     htmlString += '</tbody>';
     document.getElementById('tableTasks').innerHTML = htmlString;
 
-    var mentors = showTable('mentors');
+    var mentors = retrieveTable('mentors');
     htmlString = '<thead><tr><th>${mentor.id}</th><th>${mentor.name}</th><th>${mentor.surname}</th></tr></thead><tbody>';
     mentors.data.forEach(function (mentor) {
         htmlString += '<tr><td>' + mentor.id + '</td><td>' + mentor.name + '</td><td>' + mentor.surname + '</td></tr>';

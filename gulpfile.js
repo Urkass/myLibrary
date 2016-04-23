@@ -17,7 +17,8 @@ var gulp = require('gulp'),
     merge = require('merge-stream'),
     fs = require('fs'),
     babel = require("gulp-babel"),
-    eslint = require("gulp-eslint");
+    eslint = require("gulp-eslint"),
+    jsdoc = require('gulp-jsdoc3');
 
 //var pagesSrces
 
@@ -132,6 +133,11 @@ gulp.task('js-uglify', function () {
     gulp.src(params.out + '*.js')
         .pipe(uglify())
         .pipe(gulp.dest(params.out))
+});
+
+gulp.task('doc', function (cb) {
+    gulp.src(['README.md', params.out + '*.js'], {read: false})
+        .pipe(jsdoc(cb));
 });
 
 gulp.task('clean', function () {

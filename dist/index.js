@@ -19,7 +19,7 @@ var databank = {
             'id': 2,
             'name': 'Джон',
             'surname': 'Малкович',
-            //'teamId': 0,
+            'teamId': 0,
             'tasksIds': undefined
         }]
     },
@@ -28,7 +28,7 @@ var databank = {
         'data': [{
             'id': 0,
             'name': 'Головастики',
-            'studentsIds': [2],
+            'studentsIds': [0, 2],
             'tasksIds': undefined
         }, {
             'id': 1,
@@ -103,6 +103,10 @@ if (typeof Storage !== "undefined") {
     alert('LocalStorage не поддерживается Вашим браузером!');
 }
 
+/**
+ * Save table.
+ * @param {string} table - name of table.
+ */
 function saveTable(table) {
     try {
         localStorage.setItem(table.name, JSON.stringify(table));
@@ -112,7 +116,9 @@ function saveTable(table) {
         console.log('Память закончилась');
     }
 }
-
+/**
+ * Deleting all tables.
+ */
 function deleteAllTables() {
     if (confirm('Удаление ВСЕХ таблиц. Вы уверены?')) {
         Object.keys(databank).forEach(function (table) {
@@ -121,20 +127,34 @@ function deleteAllTables() {
         });
     }
 }
-
+/**
+ * Delete table.
+ * @param {string} tableName - name of table.
+ */
 function deleteTable(tableName) {
     localStorage.removeItem(tableName);
     showLocalstorageSpace();
 }
-
+/**
+ * Retrieve table from the local storage and parse it to json object.
+ * @param {string} tableName - name of table.
+ * @return {Object} table object
+ */
 var retrieveTable = function retrieveTable(tableName) {
     return JSON.parse(localStorage.getItem(tableName));
 };
-
+/**
+ * Show the rest of local storage space in MB.
+ */
 function showLocalstorageSpace() {
     console.log('Осталось места в LocalStorage ' + ((1024 * 1024 * 5 - encodeURIComponent(JSON.stringify(localStorage)).length) / 1024 / 1024).toPrecision(3) + ' MB');
 }
-
+/**
+ * Add new student.
+ * @param {string} name - student's name.
+ * @param {string} surname - student's surname.
+ * @param {number} team - team's id (can be empty).
+ */
 function addStudent(name, surname, team) {
     var title = 'students';
     var students = retrieveTable(title);
@@ -147,7 +167,62 @@ function addStudent(name, surname, team) {
     });
     saveTable(students);
 }
-
+/**
+ * Delete student.
+ * @param {number} studentId - student's id.
+ */
+function deleteStudent(studentId) {
+    var title = 'students';
+    var students = retrieveTable(title);
+    if (!(retrieveId(students, studentId) === undefined)) {
+        if (students.data.length === 1) {
+            students.data = [];
+        } else {
+            students.data.splice(retrieveId(students, studentId), 1);
+            deleteStudentFromTeam(studentId);
+            deleteStudentFromTask(studentId);
+        }
+        saveTable(students);
+    } else {
+        console.log('Id = ' + studentId + '. Такого id студента нету');
+    }
+}
+/**
+ * Delete student from team.
+ * @param {number} studentId - student's id.
+ */
+function deleteStudentFromTeam(studentId) {
+    var teams = retrieveTable('teams');
+    var students = retrieveTable('students');
+    var teamId = students.data[retrieveId(students, studentId)].teamId;
+    var i = teams.data[retrieveId(teams, teamId)].studentsIds.indexOf(studentId);
+    teams.data[retrieveId(teams, teamId)].studentsIds.splice(i, 1);
+    saveTable(teams);
+}
+/**
+ * Delete student from task.
+ * @param {number} studentId - student's id.
+ */
+function deleteStudentFromTask(studentId) {
+    var tasks = retrieveTable('tasks');
+    var students = retrieveTable('students');
+    var tasksIds = students.data[retrieveId(students, studentId)].tasksIds;
+    tasksIds.forEach(function (taskId) {
+        var id = retrieveId(tasks, taskId);
+        if (tasks.data[id].ownerTableName === 'students') {
+            tasks.data[id].ownerId = undefined;
+            tasks.data[id].ownerTableName = undefined;
+        }
+    });
+    saveTable(tasks);
+}
+/**
+ * Take one student and change his team.
+ * Use to change student's team.
+ * @param {number} studentId - student's id.
+ * @param {number} teamId - team's id.
+ * @return {number} teamId if function is called from addStudent() (context 'students')
+ */
 function changeStudentTeam(studentId, teamId) {
     teamId = parseInt(teamId);
     if (teamId === undefined || isNaN(teamId)) return undefined;
@@ -191,7 +266,11 @@ function changeStudentTeam(studentId, teamId) {
         console.log(e.message);
     }
 }
-
+/**
+ * Add new team.
+ * @param {string} name - team's name.
+ * @param {...number} ...students - students' list of ids.
+ */
 function addTeam(name) {
     for (var _len = arguments.length, students = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         students[_key - 1] = arguments[_key];
@@ -204,25 +283,58 @@ function addTeam(name) {
     teams.data.push({
         'id': id,
         'name': name,
-        'studentsIds': changeTeamStudents.call(title, id, students)
+        'studentsIds': changeTeamStudents.call.apply(changeTeamStudents, [title, id].concat(students))
     });
     saveTable(teams);
 }
-function showTable(table) {
-    var title = table;
-    return retrieveTable(title);
+/**
+ * Delete team.
+ * @param {number} teamId - team's id.
+ */
+function deleteStudent(teamId) {
+    var title = 'students';
+    var students = retrieveTable(title);
+    if (!(retrieveId(students, studentId) === undefined)) {
+        if (students.data.length === 1) {
+            students.data = [];
+        } else {
+            students.data.splice(retrieveId(students, studentId), 1);
+            deleteStudentFromTeam(studentId);
+            deleteStudentFromTask(studentId);
+        }
+        saveTable(students);
+    } else {
+        console.log('Id = ' + studentId + '. Такого id студента нету');
+    }
 }
+/**
+ * Take one team and insert students in this team.
+ * Use to insert a lot of students in team.
+ * @param {number} teamId - team's id.
+ * @param {...number} ...studentsIds - students' list of ids.
+ * @return {number[]} students' ids if function is called from addTeam() (context 'teams')
+ */
+function changeTeamStudents(teamId) {
+    for (var _len2 = arguments.length, studentsIds = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        studentsIds[_key2 - 1] = arguments[_key2];
+    }
 
-function changeTeamStudents(teamId, studentIds) {
-    if (studentIds.length === 0) return undefined;
+    console.log(studentsIds);
+    if (studentsIds.length === 0) return undefined;
     var context = this;
-    var array = studentIds.map(function (item) {
+    var array = studentsIds.map(function (item) {
         var id = insertStudentToTeam.call(context, teamId, item);
         if (id) return id;
     });
     return array;
 }
-
+/**
+ * Take one team and insert students in this team.
+ * Use to insert one student in team.
+ * @param {number} teamId - team's id.
+ * @param {number} studentId - student's id.
+ * @return {number} student's id if function is called from changeTeamStudents() (context 'teams')
+ */
 function insertStudentToTeam(teamId, studentId) {
     studentId = parseInt(studentId);
     if (studentId === undefined) return undefined;
@@ -264,7 +376,6 @@ function insertStudentToTeam(teamId, studentId) {
         console.log(e.message);
     }
 }
-function deleteStudentFromTeam(teamId, studentId) {}
 
 var addStudentTask = addTask.bind('students');
 var addTeamTask = addTask.bind('teams');
