@@ -7,21 +7,24 @@ var databank = {
                 'name': 'Петр',
                 'surname': 'Кузнецов',
                 'teamId': 0,
-                'tasksIds': [0]
+                'tasksIds': [0],
+                'prior': 4
             },
             {
                 'id': 1,
                 'name': 'Василий',
                 'surname': 'Соловьев',
                 'teamId': 1,
-                'tasksIds': [1]
+                'tasksIds': [1],
+                'prior': 0
             },
             {
                 'id': 2,
                 'name': 'Джон',
                 'surname': 'Малкович',
                 'teamId': 0,
-                'tasksIds': []
+                'tasksIds': [],
+                'prior': 1
             }
         ]
     },
@@ -85,27 +88,32 @@ var databank = {
             {
                 'id': 0,
                 'name': 'Брюс',
-                'surname': 'Ли'
+                'surname': 'Ли',
+                'prior': 2
             },
             {
                 'id': 1,
                 'name': 'Геннадий',
-                'surname': 'Хазанов'
+                'surname': 'Хазанов',
+                'prior': 2
             },
             {
                 'id': 2,
                 'name': 'Том',
-                'surname': 'Делонг'
+                'surname': 'Делонг',
+                'prior': 0
             },
             {
                 'id': 3,
                 'name': 'Элвис',
-                'surname': 'Пресли'
+                'surname': 'Пресли',
+                'prior': 2
             },
             {
                 'id': 4,
                 'name': 'Бьерн',
-                'surname': 'Страуструп'
+                'surname': 'Страуструп',
+                'prior': 0
             }
         ]
     }
@@ -122,7 +130,7 @@ if(typeof(Storage) !== "undefined") {
 
 /**
  * Save table.
- * @param {string} table - name of table.
+ * @param {Object} table - name of table.
  */
 function saveTable(table){
     try{
@@ -190,15 +198,16 @@ function addStudent(name, surname, team){
 function deleteStudent(studentId) {
     let title = 'students';
     let students = retrieveTable(title);
-    if (!(retrieveId(students, studentId) === undefined)) {
+    if (!(retrieveIndex(students, studentId) === undefined)) {
         if (students.data.length === 1) {
             students.data = [];
         }
         else{
-            students.data.splice(retrieveId(students, studentId), 1);
-            deleteStudentFromTeam(studentId);
-            deleteStudentFromTask(studentId);
+            students.data.splice(retrieveIndex(students, studentId), 1);
         }
+        deleteStudentFromTeam(studentId);
+        deleteStudentFromTask(studentId);
+        deleteStudentFromMentorPrior(studentId);
         saveTable(students);
     } else {
         console.log('Id = ' + studentId + '. Такого id студента нету');
@@ -211,10 +220,15 @@ function deleteStudent(studentId) {
 function deleteStudentFromTeam(studentId) {
     let teams = retrieveTable('teams');
     let students = retrieveTable('students');
-    let teamId = students.data[retrieveId(students, studentId)].teamId;
-    if (teamId){
-        let i = teams.data[retrieveId(teams, teamId)].studentsIds.indexOf(studentId);
-        teams.data[retrieveId(teams, teamId)].studentsIds.splice(i, 1);
+    let teamId = students.data[retrieveIndex(students, studentId)].teamId;
+    if (teamId !== undefined){
+        let i = teams.data[retrieveIndex(teams, teamId)].studentsIds.indexOf(studentId);
+        if (i == 1){
+            teams.data[retrieveIndex(teams, teamId)].studentsIds = [];
+        }
+        else{
+            teams.data[retrieveIndex(teams, teamId)].studentsIds.splice(i, 1);
+        }
         saveTable(teams);
     }
 }
@@ -225,10 +239,11 @@ function deleteStudentFromTeam(studentId) {
 function deleteStudentFromTask(studentId) {
     let tasks = retrieveTable('tasks');
     let students = retrieveTable('students');
-    let tasksIds = students.data[retrieveId(students, studentId)].tasksIds;
+    let tasksIds = students.data[retrieveIndex(students, studentId)].tasksIds;
+    if (tasksIds===undefined) return;
     if (tasksIds || (tasksIds.length>0)){
         tasksIds.forEach(function(taskId){
-            let id = retrieveId(tasks, taskId);
+            let id = retrieveIndex(tasks, taskId);
             if(tasks.data[id].ownerTableName === 'students'){
                 tasks.data[id].ownerId = undefined;
                 tasks.data[id].ownerTableName = undefined;
@@ -236,6 +251,23 @@ function deleteStudentFromTask(studentId) {
         });
         saveTable(tasks);
     }
+}
+/**
+ * Delete student from mentors attribute prior.
+ * @param {number} studentId - student's id.
+ */
+function deleteStudentFromMentorPrior(studentId){
+    let mentors = retrieveTable('mentors');
+    let students = retrieveTable('students');
+    if (retrieveIndex(students, studentId) !== undefined){
+        mentors.data.forEach(function(mentor){
+            if (mentor.prior === studentId) mentor.prior = undefined;
+        })
+    }
+    else{
+        condole.log('Такого студента не существует!')
+    }
+    saveTable(mentors)
 }
 /**
  * Take one student and change his team.
@@ -249,29 +281,34 @@ function changeStudentTeam(studentId, teamId){
     if (teamId===undefined || isNaN(teamId) ) return undefined;
     try {//есть ли id этой команды (без контекста (можно для всех))
         let teams = retrieveTable('teams');
-        if(retrieveId(teams, teamId) === undefined) {
+        if(retrieveIndex(teams, teamId) === undefined) {
             throw new Error(`Id = ${teamId}. Такого id команды нету`);
         }
         let students = retrieveTable('students');
         if (this) {//проверка на контекст
-                teams.data[retrieveId(teams, teamId)].studentsIds.push(studentId);
+                teams.data[retrieveIndex(teams, teamId)].studentsIds.push(studentId);
                 console.log(`Добавили студента с id ${studentId} в команду с id ${teamId}`);
                 saveTable(teams);
                 return teamId;
         }
         else {
                 //проверка нету ли еще студента (только для контекста 'students')
-                if(!(retrieveId(students, studentId) === undefined)) {
+                if(!(retrieveIndex(students, studentId) === undefined)) {
                     //проверка есть ли уже ЭТОТ студент в этой команде (без контекста (можно для всех))
-                    if (!teams.data[retrieveId(teams, teamId)].studentsIds.includes(studentId)) {
-                        teams.data[retrieveId(teams, teamId)].studentsIds.push(studentId);
-                        let oldTeamId = students.data[retrieveId(students, studentId)].teamId;
+                    if (!teams.data[retrieveIndex(teams, teamId)].studentsIds.includes(studentId)) {
+                        teams.data[retrieveIndex(teams, teamId)].studentsIds.push(studentId);
+                        let oldTeamId = students.data[retrieveIndex(students, studentId)].teamId;
                         let i = teams.data[oldTeamId].studentsIds.indexOf(studentId);
                         if (i != -1) {
-                            teams.data[oldTeamId].studentsIds.splice(i, 1);
+                            if (i === 1){
+                                teams.data[oldTeamId].studentsIds = [];
+                            }
+                            else{
+                                teams.data[oldTeamId].studentsIds.splice(i, 1);
+                            }
                         }
                         console.log(teams.data[oldTeamId].studentsIds);
-                        students.data[retrieveId(students, studentId)].teamId = teamId;
+                        students.data[retrieveIndex(students, studentId)].teamId = teamId;
                         console.log(`Изменили у студента с id ${studentId} команду с id ${oldTeamId} на команду с id ${teamId}`);
                         saveTable(students);
                         saveTable(teams);
@@ -315,15 +352,16 @@ function addTeam(name, ...students){
 function deleteTeam(teamId) {
     let title = 'teams';
     let teams = retrieveTable(title);
-    if (!(retrieveId(teams, teamId) === undefined)) {
+    if (!(retrieveIndex(teams, teamId) === undefined)) {
         if (teams.data.length === 1) {
             teams.data = [];
         }
         else{
-            teams.data.splice(retrieveId(teams, teamId), 1);
-            deleteTeamFromStudents(teamId);
-            deleteTeamFromTask(teamId);
+            teams.data.splice(retrieveIndex(teams, teamId), 1);
+
         }
+        deleteTeamFromStudents(teamId);
+        deleteTeamFromTask(teamId);
         saveTable(teams);
     } else {
         console.log('Id = ' + studentId + '. Такого id команды нету');
@@ -336,10 +374,10 @@ function deleteTeam(teamId) {
 function deleteTeamFromStudents(teamId) {
     let teams = retrieveTable('teams');
     let students = retrieveTable('students');
-    let studentsIds = teams.data[retrieveId(teams, teamId)].studentsIds;
+    let studentsIds = teams.data[retrieveIndex(teams, teamId)].studentsIds;
     if (studentsIds || (studentsIds.length>0)){
         studentsIds.forEach(function(studentId){
-            students.data[retrieveId(students, studentId)].teamId = undefined;
+            students.data[retrieveIndex(students, studentId)].teamId = undefined;
         });
         saveTable(students);
     }
@@ -351,10 +389,10 @@ function deleteTeamFromStudents(teamId) {
 function deleteTeamFromTask(teamId) {
     let tasks = retrieveTable('tasks');
     let teams = retrieveTable('teams');
-    let tasksIds = teams.data[retrieveId(teams, teamId)].tasksIds;
+    let tasksIds = teams.data[retrieveIndex(teams, teamId)].tasksIds;
     if (tasksIds || (tasksIds.length>0)){
         tasksIds.forEach(function(taskId){
-            let id = retrieveId(tasks, taskId);
+            let id = retrieveIndex(tasks, taskId);
             if(tasks.data[id].ownerTableName === 'teams'){
                 tasks.data[id].ownerId = undefined;
                 tasks.data[id].ownerTableName = undefined;
@@ -392,27 +430,27 @@ function insertStudentToTeam(teamId, studentId){
     if (studentId===undefined) return undefined;
     try {//есть ли id этой команды (без контекста (можно для всех))
         let students = retrieveTable('students');
-        if(retrieveId(students, studentId) === undefined) {
+        if(retrieveIndex(students, studentId) === undefined) {
             throw new Error(`Id = ${studentId}. Такого id студента нету!`);
         }
-        if (students.data[retrieveId(students, studentId)].teamId !== undefined){
+        if (students.data[retrieveIndex(students, studentId)].teamId !== undefined){
             throw new Error("У этого студента уже есть команда");
         }
 
         let teams = retrieveTable('teams');
         if (this) {//проверка на контекст
-                students.data[retrieveId(students, studentId)].teamId = teamId;
+                students.data[retrieveIndex(students, studentId)].teamId = teamId;
                 console.log(`Добавили студенту с id ${studentId} команду с id ${teamId}`);
                 saveTable(students);
                 return studentId;
         }
         else {
             //проверка нету ли еще студента (только для контекста 'students')
-            if(!(retrieveId(teams, teamId) === undefined)) {
+            if(!(retrieveIndex(teams, teamId) === undefined)) {
                 //проверка есть ли уже ЭТОТ студент в этой команде (без контекста (можно для всех))
-                if (!teams.data[retrieveId(teams, teamId)].studentsIds.includes(studentId)) {
-                    students.data[retrieveId(students, studentId)].teamId = teamId;
-                    teams.data[retrieveId(teams, teamId)].studentsIds.push(studentId);
+                if (!teams.data[retrieveIndex(teams, teamId)].studentsIds.includes(studentId)) {
+                    students.data[retrieveIndex(students, studentId)].teamId = teamId;
+                    teams.data[retrieveIndex(teams, teamId)].studentsIds.push(studentId);
                     console.log(`Добавили в команду с id ${teamId} студента с id ${studentId}`);
                     saveTable(students);
                     saveTable(teams);
@@ -433,12 +471,38 @@ function insertStudentToTeam(teamId, studentId){
     }
 
 }
-
+/**
+ * Add new task to student.
+ * @global
+ * @param {number} hostId - id of an owner.
+ * @param {string} name - tasks's name.
+ * @param {string} description - task's description.
+ * @param {number} mark - task's mark (can be from 0 to 5 if not it would be undefined).
+ */
 let addStudentTask = addTask.bind('students');
+/**
+ * Add new task to team.
+ * @global
+ * @param {number} hostId - id of an owner.
+ * @param {string} name - tasks's name.
+ * @param {string} description - task's description.
+ * @param {number} mark - task's mark (can be from 0 to 5 if not it would be undefined).
+ */
 let addTeamTask = addTask.bind('teams');
-
+/**
+ * Add new task.
+ * Dont use from console, use addStudentTask() or addTeamTask() functions instead
+ * @param {number} hostId - id of an owner.
+ * @param {string} name - tasks's name.
+ * @param {string} description - task's description.
+ * @param {number} mark - task's mark (can be from 0 to 5 if not it would be undefined).
+ */
 function addTask(hostId, name, description, mark){
     let tableName = this;
+    if (tableName==undefined) {
+        console.log('Воспользуйтесь addStudentTask или addTeamTask!');
+        return;
+    }
     let tasks = retrieveTable('tasks');
     let id = retrieveLastId(tasks) + 1;
     tasks.data.push({
@@ -451,7 +515,12 @@ function addTask(hostId, name, description, mark){
     });
     saveTable(tasks);
 }
-
+/**
+ * Add or change team's mark.
+ * @param {number} taskId - task's id.
+ * @param {number} mark - task's mark (can be from 0 to 5 if not it would be undefined).
+ * @return {number} mark (if it is called from addTask() function)
+ */
 function addTaskMark(taskId, mark){
     let tasks = retrieveTable('tasks');
     console.log(this);
@@ -461,10 +530,10 @@ function addTaskMark(taskId, mark){
             return mark;
         }
         else{
-            if (!(retrieveId(tasks, taskId) === undefined)){
-                if (tasks.data[retrieveId(tasks, taskId)].mark !== undefined){
+            if (!(retrieveIndex(tasks, taskId) === undefined)){
+                if (tasks.data[retrieveIndex(tasks, taskId)].mark !== undefined){
                     if(confirm(`Задание с id=${taskId} уже имеет оценку. Заменить?`)){
-                        tasks.data[retrieveId(tasks, taskId)].mark = mark;
+                        tasks.data[retrieveIndex(tasks, taskId)].mark = mark;
                         saveTable(tasks);
                     }
                     else{
@@ -472,7 +541,7 @@ function addTaskMark(taskId, mark){
                     }
                 }
                 else{
-                    tasks.data[retrieveId(tasks, taskId)].mark = mark;
+                    tasks.data[retrieveIndex(tasks, taskId)].mark = mark;
                     saveTable(tasks);
                 }
             }
@@ -493,14 +562,22 @@ function addTaskMark(taskId, mark){
 function deleteTask(taskId) {
     let title = 'tasks';
     let tasks = retrieveTable(title);
-    if (!(retrieveId(tasks, taskId) === undefined)) {
+    if (!(retrieveIndex(tasks, taskId) === undefined)) {
+        console.log(`${retrieveIndex(tasks, taskId)} and ${tasks.data[retrieveIndex(tasks, taskId)]}`);
+        if (tasks.data[retrieveIndex(tasks, taskId)].ownerTableName === 'students'){
+            deleteTaskFromStudent(taskId);
+        }
+        else if (tasks.data[retrieveIndex(tasks, taskId)].ownerTableName === 'teams'){
+            deleteTaskFromTeam(taskId);
+        }
+        else{
+            console.log('хммм');
+        }
         if (tasks.data.length === 1) {
             tasks.data = [];
         }
         else{
-            tasks.data.splice(retrieveId(tasks, taskId), 1);
-            deleteTaskFromTeam(taskId);
-            deleteTaskFromStudent(taskId);
+            tasks.data.splice(retrieveIndex(tasks, taskId), 1);
         }
         saveTable(tasks);
     } else {
@@ -514,10 +591,15 @@ function deleteTask(taskId) {
 function deleteTaskFromTeam(taskId) {
     let teams = retrieveTable('teams');
     let tasks = retrieveTable('tasks');
-    let teamId = tasks.data[retrieveId(tasks, taskId)].teamId;
-    if (teamId){
-        let i = teams.data[retrieveId(teams, teamId)].tasksIds.indexOf(taskId);
-        teams.data[retrieveId(teams, teamId)].tasksIds.splice(i, 1);
+    let ownerId = tasks.data[retrieveIndex(tasks, taskId)].ownerId;
+    if (ownerId !== undefined){
+        let i = teams.data[retrieveIndex(teams, ownerId)].tasksIds.indexOf(taskId);
+        if (i === 1){
+            teams.data[retrieveIndex(teams, ownerId)].tasksIds = [];
+        }
+        else{
+            teams.data[retrieveIndex(teams, ownerId)].tasksIds.splice(i, 1);
+        }
         saveTable(teams);
     }
 }
@@ -528,29 +610,41 @@ function deleteTaskFromTeam(taskId) {
 function deleteTaskFromStudent(taskId) {
     let students = retrieveTable('students');
     let tasks = retrieveTable('tasks');
-    let studentId = tasks.data[retrieveId(tasks, taskId)].studentId;
-    if (studentId){
-        let i = students.data[retrieveId(students, studentId)].tasksIds.indexOf(taskId);
-        students.data[retrieveId(students, studentId)].tasksIds.splice(i, 1);
+    let ownerId = tasks.data[retrieveIndex(tasks, taskId)].ownerId;
+    if (ownerId !== undefined){
+        let i = students.data[retrieveIndex(students, ownerId)].tasksIds.indexOf(taskId);
+        if (i === 1){
+            students.data[retrieveIndex(students, ownerId)].tasksIds = [];
+        }
+        else{
+            students.data[retrieveIndex(students, ownerId)].tasksIds.splice(i, 1);
+        }
         saveTable(students);
     }
 }
+/**
+ * Change task owner.
+ * @param {number} taskId - task's id.
+ * @param {string} tableName - name of table.
+ * @param {number} hostId - id of a new owner.
+ * @return {number} id of a new owner (If function is called from createTask() function)
+ */
 function changeTaskOwner(taskId, tableName, hostId){
     let context = this;
     let host = retrieveTable(tableName);
-    if (retrieveId(host, hostId) !== undefined){
+    if (retrieveIndex(host, hostId) !== undefined){
         if (this){
-                host.data[retrieveId(host, hostId)].tasksIds.push(taskId);
+                host.data[retrieveIndex(host, hostId)].tasksIds.push(taskId);
                 saveTable(host);
                 return hostId;
         }
         else{
             let tasks = retrieveTable(context);
-            if (retrieveId(tasks, taskId) === undefined){
-                if (retrieveId(tasks, taskId).ownerId !== undefined){
-                    host.data[retrieveId(host, hostId)].tasksIds.push(taskId);
-                    tasks.data[retrieveId(tasks, taskId)].ownerId = hostId;
-                    tasks.data[retrieveId(tasks, taskId)].ownerTableName = tableName;
+            if (retrieveIndex(tasks, taskId) === undefined){
+                if (retrieveIndex(tasks, taskId).ownerId !== undefined){
+                    host.data[retrieveIndex(host, hostId)].tasksIds.push(taskId);
+                    tasks.data[retrieveIndex(tasks, taskId)].ownerId = hostId;
+                    tasks.data[retrieveIndex(tasks, taskId)].ownerTableName = tableName;
                     saveTable(host);
                     saveTable(tasks);
                 }
@@ -568,7 +662,11 @@ function changeTaskOwner(taskId, tableName, hostId){
         console.log('Такого хозяина нету!')
     }
 }
-
+/**
+ * Add new mentor.
+ * @param {string} name - mentor's name.
+ * @param {string} surname - mentor's surname.
+ */
 function addMentor(name, surname){
     let title = 'mentors';
     let mentors = retrieveTable(title);
@@ -580,19 +678,99 @@ function addMentor(name, surname){
     });
     saveTable(mentors);
 }
-let retrieveLastId = (table) => table.data[table.data.length-1].id;
-//function retrieveLastId(table){
-//    return table.data[table.data.length-1].id;
-//}
+/**
+ * Delete mentor.
+ * @param {number} mentorId - mentor's id.
+ */
+function deleteMentor(mentorId) {
+    let title = 'mentors';
+    let mentors = retrieveTable(title);
+    if (!(retrieveIndex(mentors, mentorId) === undefined)) {
+        if (mentors.data.length === 1) {
+            mentors.data = [];
+        }
+        else{
+            mentors.data.splice(retrieveIndex(mentors, mentorId), 1);
+        }
+        deleteMentorFromStudentPrior(mentorId);
+        saveTable(mentors);
+    } else {
+        console.log('Id = ' + mentorId + '. Такого id студента нету');
+    }
+}
+/**
+ * Delete mentor from students attribute prior.
+ * @param {number} mentorId - mentor's id.
+ */
+function deleteMentorFromStudentPrior(mentorId){
+    let students = retrieveTable('students');
+    let mentors = retrieveTable('mentors');
+    if (retrieveIndex(mentors, mentorId) !== undefined){
+        students.data.forEach(function(student){
+            if (student.prior === mentorId) student.prior = undefined;
+        })
+    }
+    else{
+        condole.log('Такого студента не существует!')
+    }
+    saveTable(students)
+}
+/**
+ * Retrieve the last id of an element in data array in concrete table.
+ * @param {Object} table - name of table.
+ * @return {number} id of last element
+ */
+let retrieveLastId = (table) => {
+    if (table.data.length === 0) return 0;
+    else{
+        return table.data[table.data.length-1].id;
+    }
 
-function retrieveId(table, id) {
-    let x = undefined;
-    table.data.forEach(function (item) {
+}
+/**
+ * Retrieve index of an element by its id.
+ * @param {Object} table - object of table.
+ * @param {number} id  - id of an element
+ * @return {number} element's index
+ */
+function retrieveIndex(table, id) {
+    let index = undefined;
+    table.data.forEach(function (item, i) {
         if (item.id === id) {
-            x = item.id;
+            index = i;
         }
     });
-    return x;
+    return index;
 }
-
+let addStudentPrior = addPrior.bind('students');
+let addMentorPrior = addPrior.bind('mentors');
+//Prior
+function addPrior(hostId, priorId){
+    let title = this;
+    let table = retrieveTable(title);
+    if (table.data[retrieveIndex(table, hostId)].prior === undefined){
+        table.data[retrieveIndex(table, hostId)].prior = hostId;
+    }
+    else{
+        if(confirm('У этого студента уже есть приоритетный ментор. Заменить?')) table.data[retrieveIndex(table, hostId)].prior = hostId;
+    }
+    saveTable(table);
+}
+function makePriorList(){
+    let list = [];
+    let title = this;
+    let students = retrieveTable('students');
+    let mentors = retrieveTable('mentors');
+    mentors.data.forEach(function(mentor){
+       students.data.forEach(function(student){
+           if (mentor.id == student.prior && student.id == mentor.prior) {
+               list.push({
+                   'mentor': mentor,
+                   'student': student
+               });
+           }
+       });
+    });
+    return list;
+}
 
