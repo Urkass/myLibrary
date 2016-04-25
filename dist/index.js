@@ -1,111 +1,114 @@
 'use strict';
 
-var databank = {
-    'students': {
-        'name': 'students',
-        'data': [{
-            'id': 0,
-            'name': 'Петр',
-            'surname': 'Кузнецов',
-            'teamId': 0,
-            'tasksIds': [0],
-            'prior': 4
-        }, {
-            'id': 1,
-            'name': 'Василий',
-            'surname': 'Соловьев',
-            'teamId': 1,
-            'tasksIds': [1],
-            'prior': 0
-        }, {
-            'id': 2,
-            'name': 'Джон',
-            'surname': 'Малкович',
-            'teamId': 0,
-            'tasksIds': [],
-            'prior': 1
-        }]
-    },
-    'teams': {
-        'name': 'teams',
-        'data': [{
-            'id': 0,
-            'name': 'Головастики',
-            'studentsIds': [0, 2],
-            'tasksIds': []
-        }, {
-            'id': 1,
-            'name': 'Барселона',
-            'studentsIds': [1],
-            'tasksIds': [2, 3]
-        }]
-    },
-    'tasks': {
-        'name': 'tasks',
-        'data': [{
-            'id': 0,
-            'name': 'Упражнение на смекалку',
-            'description': 'В качестве дополнительного задания вы можете реализовать добавление студентов в офлайне с последующей синхронизацией. При выполнении обратите внимание на способы определения режима «онлайн/офлайн».',
-            'mark': undefined,
-            'ownerTableName': 'students',
-            'ownerId': 0
-        }, {
-            'id': 1,
-            'name': 'Задание 1',
-            'description': 'Приложение позволяет добавлять и редактировать данные студентов ШРИ (ФИО, ссылку на фотографию и краткую информацию). Для работы в офлайне оно использует ServiceWorker, позволяя при этом, как минимум, просматривать данные студентов.',
-            'mark': undefined,
-            'ownerTableName': 'students',
-            'ownerId': 1
-        }, {
-            'id': 2,
-            'name': 'Для дизайнеров',
-            'description': 'Однако при реализации были допущены несколько ошибок: — без подключения к серверу приложение не работает;— не всегда обновляется список студентов после добавления нового.',
-            'mark': undefined,
-            'ownerTableName': 'teams',
-            'ownerId': 1
-        }, {
-            'id': 3,
-            'name': 'Легкое задание',
-            'description': 'Мы не ограничиваем вас в использовании сторонних инструментов и библиотек, однако при их использовании также ожидаем комментариев, в которых вы расскажете, зачем и почему вы применили то или иное средство.',
-            'mark': undefined,
-            'ownerTableName': 'teams',
-            'ownerId': 1
-        }]
-    },
-    'mentors': {
-        'name': 'mentors',
-        'data': [{
-            'id': 0,
-            'name': 'Брюс',
-            'surname': 'Ли',
-            'prior': 2
-        }, {
-            'id': 1,
-            'name': 'Геннадий',
-            'surname': 'Хазанов',
-            'prior': 2
-        }, {
-            'id': 2,
-            'name': 'Том',
-            'surname': 'Делонг',
-            'prior': 0
-        }, {
-            'id': 3,
-            'name': 'Элвис',
-            'surname': 'Пресли',
-            'prior': 2
-        }, {
-            'id': 4,
-            'name': 'Бьерн',
-            'surname': 'Страуструп',
-            'prior': 0
-        }]
-    }
-};
+var databank = void 0;
 
 if (typeof Storage !== "undefined") {
-    for (var table in databank) {
-        saveTable(databank[table]);
+    if (confirm('Использовать тестовые таблицы?')) {
+        databank = {
+            'students': {
+                'name': 'students',
+                'data': [{
+                    'id': 0,
+                    'name': 'Петр',
+                    'surname': 'Кузнецов',
+                    'teamId': 0,
+                    'tasksIds': [0],
+                    'prior': 4
+                }, {
+                    'id': 1,
+                    'name': 'Василий',
+                    'surname': 'Соловьев',
+                    'teamId': 1,
+                    'tasksIds': [1],
+                    'prior': 0
+                }, {
+                    'id': 2,
+                    'name': 'Джон',
+                    'surname': 'Малкович',
+                    'teamId': 0,
+                    'tasksIds': [],
+                    'prior': 1
+                }]
+            },
+            'teams': {
+                'name': 'teams',
+                'data': [{
+                    'id': 0,
+                    'name': 'Головастики',
+                    'studentsIds': [0, 2],
+                    'tasksIds': []
+                }, {
+                    'id': 1,
+                    'name': 'Барселона',
+                    'studentsIds': [1],
+                    'tasksIds': [2, 3]
+                }]
+            },
+            'tasks': {
+                'name': 'tasks',
+                'data': [{
+                    'id': 0,
+                    'name': 'Упражнение на смекалку',
+                    'description': 'В качестве дополнительного задания вы можете реализовать добавление студентов в офлайне с последующей синхронизацией. При выполнении обратите внимание на способы определения режима «онлайн/офлайн».',
+                    'mark': undefined,
+                    'ownerTableName': 'students',
+                    'ownerId': 0
+                }, {
+                    'id': 1,
+                    'name': 'Задание 1',
+                    'description': 'Приложение позволяет добавлять и редактировать данные студентов ШРИ (ФИО, ссылку на фотографию и краткую информацию). Для работы в офлайне оно использует ServiceWorker, позволяя при этом, как минимум, просматривать данные студентов.',
+                    'mark': undefined,
+                    'ownerTableName': 'students',
+                    'ownerId': 1
+                }, {
+                    'id': 2,
+                    'name': 'Для дизайнеров',
+                    'description': 'Однако при реализации были допущены несколько ошибок: — без подключения к серверу приложение не работает;— не всегда обновляется список студентов после добавления нового.',
+                    'mark': undefined,
+                    'ownerTableName': 'teams',
+                    'ownerId': 1
+                }, {
+                    'id': 3,
+                    'name': 'Легкое задание',
+                    'description': 'Мы не ограничиваем вас в использовании сторонних инструментов и библиотек, однако при их использовании также ожидаем комментариев, в которых вы расскажете, зачем и почему вы применили то или иное средство.',
+                    'mark': undefined,
+                    'ownerTableName': 'teams',
+                    'ownerId': 1
+                }]
+            },
+            'mentors': {
+                'name': 'mentors',
+                'data': [{
+                    'id': 0,
+                    'name': 'Брюс',
+                    'surname': 'Ли',
+                    'prior': 2
+                }, {
+                    'id': 1,
+                    'name': 'Геннадий',
+                    'surname': 'Хазанов',
+                    'prior': 2
+                }, {
+                    'id': 2,
+                    'name': 'Том',
+                    'surname': 'Делонг',
+                    'prior': 0
+                }, {
+                    'id': 3,
+                    'name': 'Элвис',
+                    'surname': 'Пресли',
+                    'prior': 2
+                }, {
+                    'id': 4,
+                    'name': 'Бьерн',
+                    'surname': 'Страуструп',
+                    'prior': 0
+                }]
+            }
+        };
+        for (var table in databank) {
+            saveTable(databank[table]);
+        }
     }
 } else {
     alert('LocalStorage не поддерживается Вашим браузером!');
@@ -140,8 +143,11 @@ function deleteAllTables() {
  * @param {string} tableName - name of table.
  */
 function deleteTable(tableName) {
-    localStorage.removeItem(tableName);
+    //localStorage.removeItem(tableName);
     showLocalstorageSpace();
+    var table = retrieveTable(tableName);
+    table.data = [];
+    saveTable(table);
 }
 /**
  * Retrieve table from the local storage and parse it to json object.
@@ -681,6 +687,7 @@ function deleteMentorFromStudentPrior(mentorId) {
  * @return {number} id of last element
  */
 var retrieveLastId = function retrieveLastId(table) {
+    console.log(table);
     if (table.data.length === 0) return 0;else {
         return table.data[table.data.length - 1].id;
     }
@@ -700,9 +707,23 @@ function retrieveIndex(table, id) {
     });
     return index;
 }
+/**
+ * Add priority to student.
+ * @param {Object} hostId - id of student to add priority.
+ * @param {number} id  - id of a priorite mentor;
+ */
 var addStudentPrior = addPrior.bind('students');
+/**
+ * Add priority to mentor.
+ * @param {Object} hostId - id of mentor to add priority.
+ * @param {number} id  - id of a priorite student;
+ */
 var addMentorPrior = addPrior.bind('mentors');
-//Prior
+/**
+ * Add priority to student or mentor.
+ * @param {Object} hostId - id of man to add priority.
+ * @param {number} id  - id of a priority man
+ */
 function addPrior(hostId, priorId) {
     var title = this;
     var table = retrieveTable(title);
@@ -713,6 +734,10 @@ function addPrior(hostId, priorId) {
     }
     saveTable(table);
 }
+/**
+ * Recieve list of priorities.
+ * @return {Object[]} array
+ */
 function makePriorList() {
     var list = [];
     var title = this;
